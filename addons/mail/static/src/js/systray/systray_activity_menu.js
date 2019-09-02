@@ -125,13 +125,33 @@ var ActivityMenu = Widget.extend({
         } else {
             context['search_default_activities_' + data.filter] = 1;
         }
+	// Create a domain to display activities according to state
+	var domain = [['activity_user_id', '=', session.uid]];
+	var today = new Date();
+        var dd = today.getDate();
+        if (dd < 10) {
+            dd = '0' + dd; 
+        }
+        var mm = today.getMonth()+1; //January is 0!
+        if (mm < 10) {
+            mm = '0' + mm; 
+        }
+        var yyyy = today.getFullYear();
+        var str_date = yyyy + '-' + mm + '-' + dd;
+	if (data.filter == 'today') {
+            domain.push(['activity_date_deadline', '=', str_date]);
+        } else if (data.filter == 'overdue') {
+            domain.push(['activity_date_deadline', '<', str_date]);
+        } else if (data.filter == 'upcoming_all') {
+            domain.push(['activity_date_deadline', '>', str_date]);
+        }
         this.do_action({
             type: 'ir.actions.act_window',
             name: data.model_name,
             res_model:  data.res_model,
             views: [[false, 'kanban'], [false, 'form']],
             search_view_id: [false],
-            domain: [['activity_user_id', '=', session.uid]],
+            domain: domain,
             context:context,
         });
     },
